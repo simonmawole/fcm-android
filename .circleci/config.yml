@@ -12,6 +12,9 @@ aliases:
   - &download-gradle-dependencies
       name: Download Gradle dependencies
       command: ./workspace/repo/gradlew dependencies --no-daemon
+  - &chmod-permission
+      name: Chmod permission
+      command: sudo chmod +x ./gradlew
 
 circle_ci_android_container_config: &circle_ci_android_container_config
     docker:
@@ -43,6 +46,7 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
+      - run: *chmod-permission
       - run: *download-gradle-dependencies
       - save_cache: *save-repo-cache
 
