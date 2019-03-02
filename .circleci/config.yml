@@ -55,6 +55,7 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
+      - run: *chmod-permission
       - run:
           name: Run tests with Gradle
           command: |
@@ -72,6 +73,7 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
+      - run: *chmod-permission
       - run:
           name: Run Check Style linter
           command: |
