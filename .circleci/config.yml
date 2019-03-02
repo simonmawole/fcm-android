@@ -1,25 +1,25 @@
 version: 2.0
 
 aliases:
-- &restore-repo-cache
-  keys:
-  - v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
-- &save-repo-cache
-  paths:
-  - ~/.gradle/caches
-  - ~/.gradle/wrapper
-  key: v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
-- &download-gradle-dependencies
-  name: Download Gradle dependencies
-  command: ./workspace/repo/gradlew dependencies --no-daemon
+  - &restore-repo-cache
+      keys:
+        - v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
+  - &save-repo-cache
+      paths:
+        - ~/.gradle/caches
+        - ~/.gradle/wrapper
+      key: v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
+  - &download-gradle-dependencies
+      name: Download Gradle dependencies
+      command: ./workspace/repo/gradlew dependencies --no-daemon
 
 circle_ci_android_container_config: &circle_ci_android_container_config
-  docker:
-  - image: ccistaging/android:api-27
-  working_directory: ~/chomoka-working-dir
-  environment:
-    _JAVA_OPTIONS: "-Xmx1500m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
-    TERM: 'dumb'
+    docker:
+      - image: ccistaging/android:api-27
+    working_directory: ~/chomoka-working-dir
+    environment:
+      _JAVA_OPTIONS: "-Xmx1500m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
+      TERM: 'dumb'
 
 attach_workspace: &attach_workspace
   attach_workspace:
@@ -29,78 +29,78 @@ jobs:
   checkout_code:
     <<: *circle_ci_android_container_config
     steps:
-    - run: mkdir -p workspace
-    - run: mkdir -p repo
-    - checkout:
-        path: workspace/repo
-    - persist_to_workspace:
-        root: workspace
-        paths:
-        - repo
+      - run: mkdir -p workspace
+      - run: mkdir -p repo
+      - checkout:
+          path: workspace/repo
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - repo
 
   build:
     <<: *circle_ci_android_container_config
     steps:
-    - *attach_workspace
-    - restore_cache: *restore-repo-cache
-    - run: *download-gradle-dependencies
-    - save_cache: *save-repo-cache
+      - *attach_workspace
+      - restore_cache: *restore-repo-cache
+      - run: *download-gradle-dependencies
+      - save_cache: *save-repo-cache
 
   gradle_tests_run:
     <<: *circle_ci_android_container_config
     steps:
-    - *attach_workspace
-    - restore_cache: *restore-repo-cache
-    - run:
-        name: Run tests with Gradle
-        command: |
-          mkdir -p workspace/reports
-          cd workspace/repo
-          ./gradlew testDebug --no-daemon --max-workers 2
-    - store_artifacts:
-        path: ~/chomoka-working-dir/workspace/repo/app/build/reports/tests
-        destination: ~/chomoka-working-dir/workspace/reports/tests
-    - store_test_results:
-        path: app/build/test-results
+      - *attach_workspace
+      - restore_cache: *restore-repo-cache
+      - run:
+          name: Run tests with Gradle
+          command: |
+            mkdir -p workspace/reports
+            cd workspace/repo
+            ./gradlew testDebug --no-daemon --max-workers 2
+      - store_artifacts:
+          path: ~/chomoka-working-dir/workspace/repo/app/build/reports/tests
+          destination: ~/chomoka-working-dir/workspace/reports/tests
+      - store_test_results:
+          path: app/build/test-results
 
   check_style:
     <<: *circle_ci_android_container_config
     steps:
-    - *attach_workspace
-    - restore_cache: *restore-repo-cache
-      - run:
-          name: Run Check Style linter
-          command: |
-            mkdir -p workspace/reports
-            cd workspace/repo
-            ./gradlew checkstyle --no-daemon
-    - store_artifacts:
-        path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
-        destination: ~/chomoka-working-dir/workspace/reports/checkstyle
+      - *attach_workspace
+      - restore_cache: *restore-repo-cache
+        - run:
+            name: Run Check Style linter
+            command: |
+              mkdir -p workspace/reports
+              cd workspace/repo
+              ./gradlew checkstyle --no-daemon
+      - store_artifacts:
+          path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
+          destination: ~/chomoka-working-dir/workspace/reports/checkstyle
 
   deploy:
     <<: *circle_ci_android_container_config
     steps:
-    - *attach_workspace
-    - restore_cache: *restore-repo-cache
-      - run:
-          name: Deploy Chomoka Debug to Crashlytics Beta
-          command: |
-            cd workspace/repo
-            ./gradlew assembleDebug
-            ./gradlew crashlyticsUploadDistributionDebug
+      - *attach_workspace
+      - restore_cache: *restore-repo-cache
+        - run:
+            name: Deploy Chomoka Debug to Crashlytics Beta
+            command: |
+              cd workspace/repo
+              ./gradlew assembleDebug
+              ./gradlew crashlyticsUploadDistributionDebug
 
   deploy_release:
     <<: *circle_ci_android_container_config
     steps:
-    - *attach_workspace
-    - restore_cache: *restore-repo-cache
-      - run:
-          name: Deploy Chomoka Release to Crashlytics Beta
-          command: |
-            cd workspace/repo
-            ./gradlew assembleRelease
-            ./gradlew crashlyticsUploadDistributionRelease
+      - *attach_workspace
+      - restore_cache: *restore-repo-cache
+        - run:
+            name: Deploy Chomoka Release to Crashlytics Beta
+            command: |
+              cd workspace/repo
+              ./gradlew assembleRelease
+              ./gradlew crashlyticsUploadDistributionRelease
 
 workflows:
   version: 2
