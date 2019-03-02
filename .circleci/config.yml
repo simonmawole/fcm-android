@@ -68,21 +68,21 @@ jobs:
       - store_test_results:
           path: app/build/test-results
 
-  check_style:
-    <<: *circle_ci_android_container_config
-    steps:
-      - *attach_workspace
-      - restore_cache: *restore-repo-cache
-      - run: *chmod-permission
-      - run:
-          name: Run Check Style linter
-          command: |
-            mkdir -p workspace/reports
-            cd workspace/repo
-            ./gradlew checkstyle --no-daemon
-      - store_artifacts:
-          path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
-          destination: ~/chomoka-working-dir/workspace/reports/checkstyle
+#  check_style:
+#    <<: *circle_ci_android_container_config
+#    steps:
+#      - *attach_workspace
+#      - restore_cache: *restore-repo-cache
+#      - run: *chmod-permission
+#      - run:
+#          name: Run Check Style linter
+#          command: |
+#            mkdir -p workspace/reports
+#            cd workspace/repo
+#            ./gradlew checkstyle --no-daemon
+#      - store_artifacts:
+#          path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
+#          destination: ~/chomoka-working-dir/workspace/reports/checkstyle
 
   deploy:
     <<: *circle_ci_android_container_config
@@ -119,20 +119,20 @@ workflows:
     - gradle_tests_run:
         requires:
           - build
-    - check_style:
-        requires:
-          - build
+#    - check_style:
+#        requires:
+#          - build
     - deploy:
         requires:
           - gradle_tests_run
-          - check_style
+#          - check_style
         filters:
           branches:
             only: master
     - deploy_release:
         requires:
           - gradle_tests_run
-          - check_style
+#          - check_style
         filters:
           branches:
             only: release
