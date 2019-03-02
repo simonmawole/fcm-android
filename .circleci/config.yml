@@ -83,12 +83,12 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
-        - run:
-            name: Deploy Chomoka Debug to Crashlytics Beta
-            command: |
-              cd workspace/repo
-              ./gradlew assembleDebug
-              ./gradlew crashlyticsUploadDistributionDebug
+      - run:
+          name: Deploy Chomoka Debug to Crashlytics Beta
+          command: |
+            cd workspace/repo
+            ./gradlew assembleDebug
+            ./gradlew crashlyticsUploadDistributionDebug
 
   deploy_release:
     <<: *circle_ci_android_container_config
