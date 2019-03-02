@@ -17,6 +17,24 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            //Release Note
+            ext.betaDistributionReleaseNotes="Release Notes for this build."
+            //or
+            //ext.betaDistributionReleaseNotesFilePath=”path/to/release_notes.txt”
+
+            //Tester Emails
+            ext.betaDistributionEmails="simonmawole2011@gmail.com"
+            //or
+            //ext.betaDistributionEmailsFilePath="beta_distribution_emails.txt"
+
+            //Tester Emails Groups
+            //ext.betaDistributionGroupAliases="my-best-testers"
+            //ext.betaDistributionGroupAliasesFilePath=group_aliases.txt
+
+            //Email Notifications
+            ext.betaDistributionNotifications=true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
