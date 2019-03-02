@@ -68,12 +68,12 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
-        - run:
-            name: Run Check Style linter
-            command: |
-              mkdir -p workspace/reports
-              cd workspace/repo
-              ./gradlew checkstyle --no-daemon
+      - run:
+          name: Run Check Style linter
+          command: |
+            mkdir -p workspace/reports
+            cd workspace/repo
+            ./gradlew checkstyle --no-daemon
       - store_artifacts:
           path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
           destination: ~/chomoka-working-dir/workspace/reports/checkstyle
