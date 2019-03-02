@@ -95,12 +95,12 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
-        - run:
-            name: Deploy Chomoka Release to Crashlytics Beta
-            command: |
-              cd workspace/repo
-              ./gradlew assembleRelease
-              ./gradlew crashlyticsUploadDistributionRelease
+      - run:
+          name: Deploy Chomoka Release to Crashlytics Beta
+          command: |
+            cd workspace/repo
+            ./gradlew assembleRelease
+            ./gradlew crashlyticsUploadDistributionRelease
 
 workflows:
   version: 2
@@ -109,24 +109,24 @@ workflows:
     - checkout_code
     - build:
         requires:
-        - checkout_code
+          - checkout_code
     - gradle_tests_run:
         requires:
-        - build
+          - build
     - check_style:
         requires:
-        - build
+          - build
     - deploy:
         requires:
-        - gradle_tests_run
-        - check_style
+          - gradle_tests_run
+          - check_style
         filters:
           branches:
             only: master
     - deploy_release:
         requires:
-        - gradle_tests_run
-        - check_style
+          - gradle_tests_run
+          - check_style
         filters:
           branches:
             only: release
