@@ -89,6 +89,7 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
+      - run: *chmod-permission
       - run:
           name: Deploy Chomoka Debug to Crashlytics Beta
           command: |
@@ -101,6 +102,7 @@ jobs:
     steps:
       - *attach_workspace
       - restore_cache: *restore-repo-cache
+      - run: *chmod-permission
       - run:
           name: Deploy Chomoka Release to Crashlytics Beta
           command: |
