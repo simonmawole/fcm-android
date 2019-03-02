@@ -1,35 +1,132 @@
-# Java Gradle CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
-version: 2
+version: 2.0
+
+aliases:
+- &restore-repo-cache
+  keys:
+  - v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
+- &save-repo-cache
+  paths:
+  - ~/.gradle/caches
+  - ~/.gradle/wrapper
+  key: v2-jars-{{ checksum "workspace/repo/build.gradle" }}-{{ checksum  "workspace/repo/gradle.properties" }}
+- &download-gradle-dependencies
+  name: Download Gradle dependencies
+  command: ./workspace/repo/gradlew dependencies --no-daemon
+
+circle_ci_android_container_config: &circle_ci_android_container_config
+  docker:
+  - image: ccistaging/android:api-27
+  working_directory: ~/chomoka-working-dir
+  environment:
+    _JAVA_OPTIONS: "-Xmx1500m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
+    TERM: 'dumb'
+
+attach_workspace: &attach_workspace
+  attach_workspace:
+    at: ~/chomoka-working-dir/workspace
+
 jobs:
-  build:
-    working_directory: ~/repo
-    docker:
-      - image: circleci/android:api-28-alpha
-    environment:
-      JVM_OPTS: -Xmx3200m
+  checkout_code:
+    <<: *circle_ci_android_container_config
     steps:
-      - checkout
-      - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+    - run: mkdir -p workspace
+    - run: mkdir -p repo
+    - checkout:
+        path: workspace/repo
+    - persist_to_workspace:
+        root: workspace
+        paths:
+        - repo
+
+  build:
+    <<: *circle_ci_android_container_config
+    steps:
+    - *attach_workspace
+    - restore_cache: *restore-repo-cache
+    - run: *download-gradle-dependencies
+    - save_cache: *save-repo-cache
+
+  gradle_tests_run:
+    <<: *circle_ci_android_container_config
+    steps:
+    - *attach_workspace
+    - restore_cache: *restore-repo-cache
+    - run:
+        name: Run tests with Gradle
+        command: |
+          mkdir -p workspace/reports
+          cd workspace/repo
+          ./gradlew testDebug --no-daemon --max-workers 2
+    - store_artifacts:
+        path: ~/chomoka-working-dir/workspace/repo/app/build/reports/tests
+        destination: ~/chomoka-working-dir/workspace/reports/tests
+    - store_test_results:
+        path: app/build/test-results
+
+  check_style:
+    <<: *circle_ci_android_container_config
+    steps:
+    - *attach_workspace
+    - restore_cache: *restore-repo-cache
       - run:
-          name: Chmod permissions #if permission for Gradlew Dependencies fail, use this.
-          command: sudo chmod +x ./gradlew
+          name: Run Check Style linter
+          command: |
+            mkdir -p workspace/reports
+            cd workspace/repo
+            ./gradlew checkstyle --no-daemon
+    - store_artifacts:
+        path: ~/chomoka-working-dir/workspace/repo/app/build/reports/checkstyle
+        destination: ~/chomoka-working-dir/workspace/reports/checkstyle
+
+  deploy:
+    <<: *circle_ci_android_container_config
+    steps:
+    - *attach_workspace
+    - restore_cache: *restore-repo-cache
       - run:
-          name: Download Dependencies
-          command: ./gradlew androidDependencies
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+          name: Deploy Chomoka Debug to Crashlytics Beta
+          command: |
+            cd workspace/repo
+            ./gradlew assembleDebug
+            ./gradlew crashlyticsUploadDistributionDebug
+
+  deploy_release:
+    <<: *circle_ci_android_container_config
+    steps:
+    - *attach_workspace
+    - restore_cache: *restore-repo-cache
       - run:
-          name: Run Tests
-          command: ./gradlew lint test
-      - store_artifacts: # for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: app/build/reports
-          destination: reports
-      - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
-          path: app/build/test-results
-      # See https://circleci.com/docs/2.0/deployment-integrations/ for deploy examples
+          name: Deploy Chomoka Release to Crashlytics Beta
+          command: |
+            cd workspace/repo
+            ./gradlew assembleRelease
+            ./gradlew crashlyticsUploadDistributionRelease
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+    - checkout_code
+    - build:
+        requires:
+        - checkout_code
+    - gradle_tests_run:
+        requires:
+        - build
+    - check_style:
+        requires:
+        - build
+    - deploy:
+        requires:
+        - gradle_tests_run
+        - check_style
+        filters:
+          branches:
+            only: master
+    - deploy_release:
+        requires:
+        - gradle_tests_run
+        - check_style
+        filters:
+          branches:
+            only: release
