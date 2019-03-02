@@ -1,27 +1,30 @@
 {
   "project_info": {
-    "project_number": "211355147455",
-    "firebase_url": "https://fcm-demo-759ee.firebaseio.com",
-    "project_id": "fcm-demo-759ee",
-    "storage_bucket": "fcm-demo-759ee.appspot.com"
+    "project_number": "229915351141",
+    "firebase_url": "https://vimeo-1e472.firebaseio.com",
+    "project_id": "vimeo-1e472",
+    "storage_bucket": "vimeo-1e472.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:211355147455:android:217cb40f30f939aa",
+        "mobilesdk_app_id": "1:229915351141:android:217cb40f30f939aa",
         "android_client_info": {
           "package_name": "com.simon.fcm"
         }
       },
       "oauth_client": [
         {
-          "client_id": "211355147455-2qrkd39bih0akd4kpavqhagdpbo28d3r.apps.googleusercontent.com",
+          "client_id": "229915351141-qi6m15slh82cqhr0ru8ge08d2io3ekqb.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAlnK0wpL0QptRlaxiTnTsisj0uKl-c588"
+          "current_key": "AIzaSyBzeMtPgJCv36kRcMJV4fYthertGMi69B0"
+        },
+        {
+          "current_key": "AIzaSyBEOQRrmgxRL9gUXaKDxy35ptBS0ouyuk8"
         }
       ],
       "services": {
